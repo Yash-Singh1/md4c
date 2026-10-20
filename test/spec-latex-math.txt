@@ -4,8 +4,8 @@
 With the flag `ENRMRKD_FLAG_LATEXMATHSPANS`, MD4C enables extension for recognition
 of LaTeX style math spans.
 
-A math span is is any text wrapped in dollars or double dollars (`$...$` or
-`$$...$$`).
+A math span is any text wrapped in dollars, double dollars, escaped
+parentheses, or escaped brackets (`$...$`, `$$...$$`, `\(...\)`, or `\[...\]`).
 
 ```````````````````````````````` example
 $a+b=c$ Hello, world!
@@ -73,3 +73,218 @@ verbatim text. (This includes the HTML renderer used by the `md2html` utility.)
 
 Only advanced renderers which implement LaTeX math syntax can be expected to
 provide better results.
+
+## Bracket delimiters
+
+Bracket math uses the same feature flag and callbacks as dollar math. Its
+contents are verbatim. Doubled backslashes escape delimiters. An unmatched
+opening delimiter keeps the ordinary Markdown escape behavior, including
+while a document is streamed. Bracket math stays within the current block.
+It does not change block precedence.
+
+```````````````````````````````` example
+Inline \(x_1 + 1\).
+.
+<p>Inline <x-equation>x_1 + 1</x-equation>.</p>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+\[x^2 + y^2 = z^2\]
+.
+<p><x-equation type="display">x^2 + y^2 = z^2</x-equation></p>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+a\(x\)b and a\[y\]b
+.
+<p>a<x-equation>x</x-equation>b and a<x-equation type="display">y</x-equation>b</p>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+\(\frac{1}{2} *x* [y] $z$ &amp;\)
+.
+<p><x-equation>\frac{1}{2} *x* [y] $z$ &amp;amp;</x-equation></p>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+\\(x\\) and \\[y\\]
+.
+<p>\(x\) and \[y\]</p>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+\\\(x\) and \\\[y\]
+.
+<p>\<x-equation>x</x-equation> and \<x-equation type="display">y</x-equation></p>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+\(a\\)b\) and \[c\\]d\]
+.
+<p><x-equation>a\\)b</x-equation> and <x-equation type="display">c\\]d</x-equation></p>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+\(x\) \[y\] $z$ $$w$$
+.
+<p>(x) [y] $z$ $$w$$</p>
+.
+
+````````````````````````````````
+
+```````````````````````````````` example
+\(x\]
+
+\[y\)
+.
+<p>(x]</p>
+<p>[y)</p>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+\
+
+\(
+
+\(x
+
+\(x\
+
+\[
+
+\[y
+
+\[y\
+.
+<p>\</p>
+<p>(</p>
+<p>(x</p>
+<p>(x\</p>
+<p>[</p>
+<p>[y</p>
+<p>[y\</p>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+\(x\) and \(unfinished
+.
+<p><x-equation>x</x-equation> and (unfinished</p>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+`\(x\) \[y\] $z$`
+.
+<p><code>\(x\) \[y\] $z$</code></p>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+```tex
+\(x\) \[y\] $z$
+```
+.
+<pre><code class="language-tex">\(x\) \[y\] $z$
+</code></pre>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+$a$ \(b\) $$c$$ \[d\]
+.
+<p><x-equation>a</x-equation> <x-equation>b</x-equation> <x-equation type="display">c</x-equation> <x-equation type="display">d</x-equation></p>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+> \(x_1\)
+
+- \[y^2\]
+.
+<blockquote>
+<p><x-equation>x_1</x-equation></p>
+</blockquote>
+<ul>
+<li><x-equation type="display">y^2</x-equation></li>
+</ul>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+[\(x_1\)](/math) and [\[y^2\]](/display)
+.
+<p><a href="/math"><x-equation>x_1</x-equation></a> and <a href="/display"><x-equation type="display">y^2</x-equation></a></p>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+\(a [b](/url)\) and [link](/url "\(title\)")
+.
+<p><x-equation>a [b](/url)</x-equation> and <a href="/url" title="(title)">link</a></p>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+> \(a
+> b\)
+
+- \[c
+  d\]
+.
+<blockquote>
+<p><x-equation>a b</x-equation></p>
+</blockquote>
+<ul>
+<li><x-equation type="display">c d</x-equation></li>
+</ul>
+.
+--flatex-math
+````````````````````````````````
+
+```````````````````````````````` example
+| inline | display |
+| --- | --- |
+| \(x\) | \[y\] |
+.
+<table>
+<thead>
+<tr>
+<th>inline</th>
+<th>display</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><x-equation>x</x-equation></td>
+<td><x-equation type="display">y</x-equation></td>
+</tr>
+</tbody>
+</table>
+.
+--ftables --flatex-math
+````````````````````````````````

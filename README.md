@@ -128,8 +128,8 @@ extensions:
   (text enclosed in double plus marks, e.g. `++foo bar++`). The HTML
   renderer outputs `<ins>`.
 
-* With the flag `ENRMRKD_FLAG_LATEXMATHSPANS`, LaTeX math spans (`$...$`) and
-  LaTeX display math spans (`$$...$$`) are supported. (Note though that the
+* With the flag `ENRMRKD_FLAG_LATEXMATHSPANS`, LaTeX math spans (`$...$` or `\(...\)`) and
+  LaTeX display math spans (`$$...$$` or `\[...\]`) are supported. (Note though that the
   HTML renderer outputs them verbatim in a custom tag `<x-equation>`.)
 
 * With the flag `ENRMRKD_FLAG_PERMISSIVEATXHEADERS`, the delimiting space is
