@@ -111,6 +111,23 @@ pathological = {
             "--ffootnotes"),
 }
 
+# Exercise raw newline bytes and repeated streaming fragments, which the text
+# specification's line-oriented format cannot express conveniently.
+for name, newline in [("LF", "\n"), ("CR", "\r"), ("CRLF", "\r\n")]:
+    pathological["display math with " + name] = (
+        newline.join(["$$", "a", "=", "b", "$$"]),
+        re.compile(r'^<p><x-equation type="display"> a = b </x-equation></p>\r?\n$'),
+        "--flatex-math")
+
+pathological["many complete display equations"] = (
+    "$$\na\n=\nb\n$$\n" * 20000,
+    re.compile(r'^(<p><x-equation type="display"> a = b </x-equation></p>\r?\n){20000}$'),
+    "--flatex-math")
+pathological["many incomplete display equations"] = (
+    "$$\na\n=\nb\n\n" * 20000,
+    re.compile(r'^(<h1>\$\$\r?\na</h1>\r?\n<p>b</p>\r?\n){20000}$'),
+    "--flatex-math")
+
 whitespace_re = re.compile('/s+/')
 
 def run_tests(args):

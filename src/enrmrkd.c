@@ -275,6 +275,7 @@ struct MD_CTX_tag {
     unsigned code_indent_offset;
 
     /* Contextual info for line analysis. */
+    OFF math_span_end;      /* End of a confirmed standalone display math span. */
     SZ code_fence_length;   /* For checking closing fence length. */
     int html_block_type;    /* For checking closing raw HTML condition. */
     int last_line_has_list_loosening_effect;
@@ -6525,6 +6526,80 @@ md_line_indentation(MD_CTX* ctx, unsigned total_indent, OFF beg, OFF* p_end)
     return indent - total_indent;
 }
 
+/* Only complete, standalone display spans get precedence over block syntax.
+ * Do not cross paragraph or container boundaries, and leave ambiguous inline
+ * syntax to the ordinary inline parser. Each successful scan is consumed by
+ * md_analyze_line(); failed scans stop at the first boundary or dollar. */
+static OFF
+md_standalone_math_end(MD_CTX* ctx, OFF beg)
+{
+    OFF off = beg + 2;
+    int i;
+
+    while(off < ctx->size  &&  ISBLANK(off))
+        off++;
+    if(off >= ctx->size  ||  !ISNEWLINE(off))
+        return 0;
+
+    while(off < ctx->size) {
+        unsigned total_indent = 0;
+        unsigned indent;
+        OFF end;
+
+        if(CH(off) == _T('\r'))
+            off++;
+        if(off < ctx->size  &&  CH(off) == _T('\n'))
+            off++;
+        indent = md_line_indentation(ctx, total_indent, off, &off);
+        total_indent += indent;
+
+        for(i = 0; i < ctx->n_containers; i++) {
+            const MD_CONTAINER* c = &ctx->containers[i];
+
+            if(c->ch == _T('>')) {
+                if(indent >= ctx->code_indent_offset  ||  off >= ctx->size  ||  CH(off) != _T('>'))
+                    return 0;
+                off++;
+                total_indent++;
+                indent = md_line_indentation(ctx, total_indent, off, &off);
+                total_indent += indent;
+                if(indent > 0)
+                    indent--;
+            } else {
+                if(indent < c->contents_indent)
+                    return 0;
+                indent -= c->contents_indent;
+            }
+        }
+
+        if(off >= ctx->size  ||  ISNEWLINE(off))
+            return 0;
+
+        end = off;
+        while(end < ctx->size  &&  !ISNEWLINE(end))
+            end++;
+        while(end > off  &&  ISBLANK(end-1))
+            end--;
+        if(indent < ctx->code_indent_offset  &&  end - off == 2  &&
+           CH(off) == _T('$')  &&  CH(off+1) == _T('$'))
+            return end;
+
+        /* An inner dollar or backtick may prevent the inline parser from
+         * pairing our delimiters. Preserve its existing behavior in that case.
+         * Escaped punctuation, including dollars, cannot be inline marks. */
+        while(off < ctx->size  &&  !ISNEWLINE(off)) {
+            if(CH(off) == _T('\\')  &&  off+1 < ctx->size  &&  ISPUNCT(off+1)) {
+                off += 2;
+            } else if(ISANYOF2(off, _T('$'), _T('`'))) {
+                return 0;
+            } else {
+                off++;
+            }
+        }
+    }
+    return 0;
+}
+
 static const MD_LINE_ANALYSIS md_dummy_blank_line = { MD_LINE_BLANK, 0, 0, 0, 0, 0 };
 
 /* Analyze type of the line and find some its properties. This serves as a
@@ -6547,6 +6622,13 @@ md_analyze_line(MD_CTX* ctx, OFF beg, OFF* p_end,
     total_indent += line->indent;
     line->beg = off;
     line->enforce_new_block = false;
+
+    if(ctx->math_span_end > 0  &&  beg >= ctx->math_span_end) {
+        /* Keep following Setext underlines and prose outside the equation. */
+        ctx->math_span_end = 0;
+        pivot_line = &md_dummy_blank_line;
+        line->enforce_new_block = true;
+    }
 
     /* Given the indentation and block quote marks '>', determine how many of
      * the current containers are our parents. */
@@ -6686,6 +6768,11 @@ md_analyze_line(MD_CTX* ctx, OFF beg, OFF* p_end,
             ctx->last_line_has_list_loosening_effect = false;
         }
 
+        if(ctx->math_span_end > off) {
+            line->type = MD_LINE_TEXT;
+            break;
+        }
+
         /* Check whether we are Setext underline. */
         if(line->indent < ctx->code_indent_offset  &&  pivot_line->type == MD_LINE_TEXT
             &&  off < ctx->size  &&  ISANYOF2(off, _T('='), _T('-'))
@@ -6802,6 +6889,21 @@ md_analyze_line(MD_CTX* ctx, OFF beg, OFF* p_end,
         if(pivot_line->type == MD_LINE_TABLE  &&  n_parents == ctx->n_containers) {
             line->type = MD_LINE_TABLE;
             break;
+        }
+
+        /* A standalone opener must begin a paragraph. In particular, a dollar
+         * line inside a code span opened in preceding prose is not a block.
+         * Inline display spans in an existing paragraph keep their old rules. */
+        if((ctx->parser.flags & ENRMRKD_FLAG_LATEXMATHSPANS)  &&
+           pivot_line->type != MD_LINE_TEXT  &&  pivot_line->type != MD_LINE_TABLE  &&
+           line->indent < ctx->code_indent_offset  &&  off+1 < ctx->size  &&
+           CH(off) == _T('$')  &&  CH(off+1) == _T('$'))
+        {
+            ctx->math_span_end = md_standalone_math_end(ctx, off);
+            if(ctx->math_span_end > 0) {
+                line->type = MD_LINE_TEXT;
+                break;
+            }
         }
 
         /* Check for ATX header. */
