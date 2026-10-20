@@ -177,6 +177,16 @@ extensions:
   `[[target article|link label]]`) are supported. (Note that the HTML renderer
   outputs them in a custom tag `<x-wikilink>`.)
 
+* With `ENRMRKD_FLAG_HTMLBR`, exact inline `<br>`, `<br/>`, and `<br />` tags
+  (ASCII case-insensitive) emit `ENRMRKD_TEXT_BR`, including in GFM table cells.
+  This opt-in works with `ENRMRKD_FLAG_NOHTMLSPANS` and `ENRMRKD_FLAG_NOHTML`;
+  it does not enable other HTML. Without it, existing HTML flags and CommonMark
+  behavior are unchanged. Escaped tags, character references, code spans and
+  code blocks stay literal. Attributes, closing tags and other whitespace
+  spellings are not recognized as breaks. Raw HTML blocks keep their existing
+  parsing and events, including video blocks. Disable HTML blocks separately
+  if a standalone tag should participate in inline parsing.
+
 Few features of CommonMark (those some people see as mis-features) may be
 disabled with the following flags:
 

@@ -255,6 +255,7 @@ static const CMDLINE_OPTION cmdline_options[] = {
     {  0,  "fcollapse-whitespace",          'W', 0 },
     {  0,  "ffootnotes",                    'N', 0 },
     {  0,  "fhard-soft-breaks",             'B', 0 },
+    {  0,  "fhtml-br",                      'J', 0 },
     {  0,  "fhighlight",                    'M', 0 },
     {  0,  "finsert",                       'C', 0 },
     {  0,  "flatex-math",                   'L', 0 },
@@ -313,6 +314,7 @@ usage(void)
         "      --ffootnotes     Enable footnote references ([^label])\n"
         "      --fhard-soft-breaks\n"
         "                       Force all soft breaks to act as hard breaks\n"
+        "      --fhtml-br      Report exact inline br tags as hard breaks\n"
         "      --fhighlight     Enable highlight spans (==text==)\n"
         "      --finsert        Enable insert spans (++text++)\n"
         "      --flatex-math    Enable LaTeX style mathematics spans\n"
@@ -418,6 +420,7 @@ cmdline_callback(int opt, char const* value, void* data)
         case 'X':   parser_flags |= ENRMRKD_FLAG_TASKLISTS; break;
         case '_':   parser_flags |= ENRMRKD_FLAG_UNDERLINE; break;
         case 'N':   parser_flags |= ENRMRKD_FLAG_FOOTNOTES; break;
+        case 'J':   parser_flags |= ENRMRKD_FLAG_HTMLBR; break;
         case 'B':   parser_flags |= ENRMRKD_FLAG_HARD_SOFT_BREAKS; break;
         case 'Y':   parser_flags |= ENRMRKD_FLAG_PRESERVEBLANKLINES; break;
 

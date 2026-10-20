@@ -1,0 +1,60 @@
+# Inline HTML line breaks
+
+Only the three exact spellings are opt-in hard breaks.
+
+```````````````````````````````` example
+one<br>two<BR/>three<Br />four
+.
+<p>one<br>
+two<br>
+three<br>
+four</p>
+.
+--fhtml-br --fno-html
+````````````````````````````````
+
+```````````````````````````````` example
+one<br>two
+.
+<p>one&lt;br&gt;two</p>
+.
+--fno-html
+````````````````````````````````
+
+```````````````````````````````` example
+| cell |
+| --- |
+| one<br>two |
+.
+<table>
+<thead>
+<tr>
+<th>cell</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>one<br>
+two</td>
+</tr>
+</tbody>
+</table>
+.
+--fhtml-br --fno-html --ftables
+````````````````````````````````
+
+```````````````````````````````` example
+`one<br>two` and \<br> and &lt;br&gt;
+.
+<p><code>one&lt;br&gt;two</code> and &lt;br&gt; and &lt;br&gt;</p>
+.
+--fhtml-br --fno-html
+````````````````````````````````
+
+```````````````````````````````` example
+one<br >two<br  />three<br x>four</br>five<br/ >six
+.
+<p>one&lt;br &gt;two&lt;br  /&gt;three&lt;br x&gt;four&lt;/br&gt;five&lt;br/ &gt;six</p>
+.
+--fhtml-br --fno-html
+````````````````````````````````
