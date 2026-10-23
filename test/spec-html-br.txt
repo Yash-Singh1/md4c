@@ -3,12 +3,15 @@
 Only the three exact spellings are opt-in hard breaks.
 
 ```````````````````````````````` example
-one<br>two<BR/>three<Br />four
+one<br>two<br/>three<br />four<BR>five<Br/>six<bR />seven
 .
 <p>one<br>
 two<br>
 three<br>
-four</p>
+four<br>
+five<br>
+six<br>
+seven</p>
 .
 --fhtml-br --fno-html
 ````````````````````````````````
@@ -57,4 +60,144 @@ one<br >two<br  />three<br x>four</br>five<br/ >six
 <p>one&lt;br &gt;two&lt;br  /&gt;three&lt;br x&gt;four&lt;/br&gt;five&lt;br/ &gt;six</p>
 .
 --fhtml-br --fno-html
+````````````````````````````````
+
+## HTML policy flags
+
+The extension works with each raw-HTML policy. XHTML output also exercises
+the existing hard-break renderer rather than passing the input tag through.
+
+```````````````````````````````` example
+one<br>two<br/>three<br />four
+.
+<p>one<br />
+two<br />
+three<br />
+four</p>
+.
+--fhtml-br --xhtml
+````````````````````````````````
+
+```````````````````````````````` example
+one<br>two<br/>three<br />four
+.
+<p>one<br />
+two<br />
+three<br />
+four</p>
+.
+--fhtml-br --fno-html-spans --xhtml
+````````````````````````````````
+
+```````````````````````````````` example
+one<br>two<br/>three<br />four
+.
+<p>one<br />
+two<br />
+three<br />
+four</p>
+.
+--fhtml-br --fno-html-blocks --xhtml
+````````````````````````````````
+
+Without the flag, raw inline HTML retains its original spelling.
+
+```````````````````````````````` example
+one<br>two<br/>three<br />four
+.
+<p>one<br>two<br/>three<br />four</p>
+.
+--xhtml
+````````````````````````````````
+
+## Formatting and literal controls
+
+```````````````````````````````` example
+**one**<br><br/>[two](/link)<BR />three
+.
+<p><strong>one</strong><br>
+<br>
+<a href="/link">two</a><br>
+three</p>
+.
+--fhtml-br --fno-html
+````````````````````````````````
+
+```````````````````````````````` example
+one<br title="<br>">two<span title="<br/>">three<!-- <br> -->four<?test <br> ?>five<![CDATA[<br>]]>six
+.
+<p>one&lt;br title=&quot;&lt;br&gt;&quot;&gt;two&lt;span title=&quot;&lt;br/&gt;&quot;&gt;three&lt;!-- &lt;br&gt; --&gt;four&lt;?test &lt;br&gt; ?&gt;five&lt;![CDATA[&lt;br&gt;]]&gt;six</p>
+.
+--fhtml-br --fno-html
+````````````````````````````````
+
+```````````````````````````````` example
+```html
+one<br>two<br/>three<br />four
+```
+.
+<pre><code class="language-html">one&lt;br&gt;two&lt;br/&gt;three&lt;br /&gt;four
+</code></pre>
+.
+--fhtml-br --fno-html
+````````````````````````````````
+
+```````````````````````````````` example
+    one<br>two
+.
+<pre><code>one&lt;br&gt;two
+</code></pre>
+.
+--fhtml-br --fno-html
+````````````````````````````````
+
+```````````````````````````````` example
+<br@example.org> and <https://example.org> and one<b>two</b>
+.
+<p><a href="mailto:br@example.org">br@example.org</a> and <a href="https://example.org">https://example.org</a> and one&lt;b&gt;two&lt;/b&gt;</p>
+.
+--fhtml-br --fno-html
+````````````````````````````````
+
+```````````````````````````````` example
+one<bravo>two<br/ >three<br
+four<br/
+.
+<p>one&lt;bravo&gt;two&lt;br/ &gt;three&lt;br
+four&lt;br/</p>
+.
+--fhtml-br --fno-html
+````````````````````````````````
+
+## HTML blocks
+
+HTML block classification takes precedence over the inline extension.
+
+```````````````````````````````` example
+<br>
+.
+<br>
+.
+--fhtml-br
+````````````````````````````````
+
+```````````````````````````````` example
+<br>
+.
+<p><br>
+</p>
+.
+--fhtml-br --fno-html-blocks
+````````````````````````````````
+
+```````````````````````````````` example
+<div>
+one<br>two
+</div>
+.
+<div>
+one<br>two
+</div>
+.
+--fhtml-br
 ````````````````````````````````

@@ -119,9 +119,4 @@ if(NOT IDF_TARGET)
 
     add_subdirectory(src)
     add_subdirectory(md2html)
-
-    if(BUILD_MD2HTML_EXECUTABLE)
-        add_executable(html-br-tests test/html-br.c)
-        target_link_libraries(html-br-tests PRIVATE enrmrkd)
-    endif()
 endif()

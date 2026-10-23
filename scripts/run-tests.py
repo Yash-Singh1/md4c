@@ -10,7 +10,6 @@ argv0_dir = os.path.dirname(sys.argv[0])
 project_dir = os.path.abspath(os.path.join(argv0_dir, ".."))
 test_dir = os.path.join(project_dir, "test")
 program = os.path.abspath(os.path.join("md2html", "md2html"))
-html_br_tests = os.path.abspath("html-br-tests")
 
 if __name__ == "__main__":
     err_count = 0
@@ -41,11 +40,6 @@ if __name__ == "__main__":
             "-p", str(program)
     ]
     p = subprocess.run(args)
-    if p.returncode != 0:
-        err_count += 1
-
-    print("Testing HTML line-break callbacks:", flush=True)
-    p = subprocess.run([html_br_tests])
     if p.returncode != 0:
         err_count += 1
 
